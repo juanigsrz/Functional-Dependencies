@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <ext/pb_ds/assoc_container.hpp>
 #include <set>
 #include <algorithm>
 
@@ -41,22 +42,14 @@ inline std::ostream& operator << (std::ostream& stream, const Attrs& attrs){
     return stream;
 }
 
-inline AttrDependency operator >> (const Attrs& a, const Attrs& b){
-    // Set A -> Set B
-    // B depends on A
-    return AttrDependency(a, {b});
-}
 
 inline bool isSubset(const Attrs& a, const Attrs& b){
     // Checks if every element of a is in b
-    bool foundAll = true;
-    for(auto &attr : a){
-        if( b.find(attr) == b.end() ){
-            foundAll = false;
-            break;
-        }
-    }
-    return foundAll;
+    for(auto &attr : a)
+        if( b.find(attr) == b.end() )
+            return false;
+
+    return true;
 }
 
 int countDependencies(const AttrDependencies& F){
@@ -195,18 +188,27 @@ AttrDependencies set_closure(const Attrs& X, const AttrDependencies& F){
 /****************************************************************************************/
 
 
-
+std::map<Attrs, bool> spawnsR;
 Attrs candidateSet = {}, candidateSubset = {};
 
 bool processCandidateSubsets(Attrs::iterator it, Attrs::iterator last, const Attrs& R, const AttrDependencies& F){
+    // Returns true if there is no proper subset that can "spawn" R
+    // returns false otherwise
     if(it == last) return true;
 
     candidateSubset += *it;
     bool checkWith = processCandidateSubsets(next(it,1), last, R, F); // The current element 'it' is in the set
 
-    if( candidateSubset.size() != candidateSet.size() ) // A proper subset
-        if( (attr_closure(candidateSubset, F) == R) )
+    if( candidateSubset.size() != candidateSet.size() ){ // A proper subset
+        if( spawnsR.find(candidateSubset) == spawnsR.end() )
+            spawnsR[candidateSubset] = attr_closure(candidateSubset, F) == R;
+
+        if( spawnsR[candidateSubset] ){
+            // Skip the next check since we already know we spawn R
+            candidateSubset -= *it;
             return false;
+        }
+    }
 
     candidateSubset -= *it;
     bool checkWithout = processCandidateSubsets(next(it,1), last, R, F); // 'it' is NOT in the set
@@ -220,14 +222,19 @@ void processCandidateSets(Attrs::iterator it, Attrs::iterator last, const Attrs&
     candidateSet += *it;
     processCandidateSets(next(it,1), last, R, res, F); // The current element 'it' is in the set
 
-    if( attr_closure(candidateSet, F) == R ){
+    if( spawnsR.find(candidateSet) == spawnsR.end() )
+        spawnsR[candidateSet] = attr_closure(candidateSet, F) == R;
+
+    if( spawnsR[candidateSet] ){
         bool isCandidate = processCandidateSubsets(candidateSet.begin(), candidateSet.end(), R, F);
+
         if( isCandidate )
             res.insert(candidateSet);
     }
 
     candidateSet -= *it;
     processCandidateSets(next(it,1), last, R, res, F); // 'it' is NOT in the set
+
 }
 
 SetAttrs candidate_keys(const Attrs& R, const AttrDependencies& F){
@@ -237,11 +244,9 @@ SetAttrs candidate_keys(const Attrs& R, const AttrDependencies& F){
     // no proper subset Y of X such that Y+ includes all the attributes in R
 
     SetAttrs res = {};
+    spawnsR.clear();
     processCandidateSets(R.begin(), R.end(), R, res, F);
 
     return res;
 }
-
-
-
 

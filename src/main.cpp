@@ -6,24 +6,24 @@ int main() {
     /*
     Attr a{'A'}, b{'B'}, c{'C'}, d{'D'};
     AttrDependencies F;
-    F.insert(a >> b);
-    F.insert(b >> Attrs{a,d});
-    F.insert(Attrs{b,c} >> a);
+    F[a].insert(b);
+    F[b].insert(Attrs{a,d});
+    F[Attrs{b,c}].insert(a);
 
     Attrs a_closure = {};
+    AttrDependencies s_closure = set_closure(Attrs{a,b,c,d}, F); // = 137
     SetAttrs cand_keys = {};
-    AttrDependencies s_closure = set_closure(Attrs{a,b,c,d}, F);
     */
 
     /** Set 2 **/
     /*
     Attr a{'A'}, b{'B'}, c{'C'}, d{'D'}, e{'E'}, f{'F'};
     AttrDependencies F;
-    F.insert(Attrs{a,b} >> c);
-    F.insert(Attrs{b,d} >> Attrs{e,f});
+    F[Attrs{a,b}].insert(c);
+    F[Attrs{b,d}].insert(Attrs{e,f});
 
     Attrs a_closure = {};
-    AttrDependencies s_closure = set_closure(Attrs{a,b,c,d,e,f}, F);
+    AttrDependencies s_closure = set_closure(Attrs{a,b,c,d,e,f}, F); // = 1081
     SetAttrs cand_keys = {};
     */
 
@@ -31,11 +31,11 @@ int main() {
     /*
     Attr a{'A'}, b{'B'}, c{'C'}, d{'D'}, e{'E'}, f{'F'}, g{'G'}, h{'H'}, i{'I'}, j{'J'};
     AttrDependencies F;
-    F.insert(a >> i);
-    F.insert(Attrs{a,b} >> c);
-    F.insert(Attrs{a,d} >> Attrs{g,h});
-    F.insert(Attrs{b,d} >> Attrs{e,f});
-    F.insert(h >> j);
+    F[a].insert(i);
+    F[Attrs{a,b}].insert(c);
+    F[Attrs{a,d}].insert(Attrs{g,h});
+    F[Attrs{b,d}].insert(Attrs{e,f});
+    F[h].insert(j);
 
     Attrs a_closure = attr_closure(Attrs{b,d}, F); // = {B, D, E, F}
     AttrDependencies s_closure = {};
@@ -46,45 +46,47 @@ int main() {
     /*
     Attr a{'A'}, b{'B'}, c{'C'}, d{'D'}, e{'E'}, f{'F'}, g{'G'}, h{'H'};
     AttrDependencies F;
-    F.insert(a >> Attrs{b,c});
-    F.insert(c >> d);
-    F.insert(d >> g);
-    F.insert(e >> a);
-    F.insert(e >> h);
-    F.insert(h >> e);
+    F[a].insert(Attrs{b,c});
+    F[c].insert(d);
+    F[d].insert(g);
+    F[e].insert(a);
+    F[e].insert(h);
+    F[h].insert(e);
 
     Attrs a_closure = attr_closure(Attrs{a,c}, F); // = {A, B, C, D, G}
     AttrDependencies s_closure = {};
-    SetAttrs cand_keys = candidate_keys(Attrs{a,b,c,d,e,f,g,h}, F); // = {F, H} -- TODO: Check this
+    SetAttrs cand_keys = candidate_keys(Attrs{a,b,c,d,e,f,g,h}, F); // = {E, F}{F, H}
     */
 
     /** Set 5 **/
-    /*
+
     Attr a{'A'}, b{'B'}, c{'C'}, d{'D'}, e{'E'}, f{'F'}, g{'G'};
     AttrDependencies F;
-    F.insert(a >> f);
-    F.insert(a >> g);
-    F.insert(b >> e);
-    F.insert(c >> d);
-    F.insert(d >> b);
-    F.insert(e >> a);
-    F.insert(Attrs{f,g} >> c);
+    F[a].insert(f);
+    F[a].insert(g);
+    F[b].insert(e);
+    F[c].insert(d);
+    F[d].insert(b);
+    F[e].insert(a);
+    F[Attrs{f,g}].insert(c);
 
     Attrs a_closure = attr_closure(Attrs{f,g}, F); // = {A, B, C, D, E, F, G}
-    AttrDependencies s_closure = {};
-    SetAttrs cand_keys = candidate_keys(Attrs{a,b,c,d,e,f,g}, F); // = {A, G}{B, G}...{F, G} -- TODO: Check this
-    */
+    AttrDependencies s_closure = {}; //set_closure(Attrs{a,b,c,d,e,f,g}, F);
+    SetAttrs cand_keys = candidate_keys(Attrs{a,b,c,d,e,f,g}, F); // = {A}{B}...{E}{F, G}
+
 
     /** Set TEST1 **/
     /*
     Attr a{'A'}, b{'B'}, c{'C'}, d{'D'};
     AttrDependencies F;
-    F.insert(a >> b);
-    F.insert(b >> c);
+    F[a].insert(b);
+    F[b].insert(c);
 
     Attrs a_closure = {};
     AttrDependencies s_closure = set_closure(Attrs{a,b,c,d}, F);
+    SetAttrs cand_keys = {};
     */
+
 
     std::cout << "A+ closure: ";
     for(auto &elem : a_closure) std::cout << elem << ' ';
