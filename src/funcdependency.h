@@ -8,7 +8,7 @@
 #include <ext/pb_ds/assoc_container.hpp>
 #include <set>
 
-/** Basic definitions and essentials operators **/
+/** Basic definitions/operators **/
 struct Attr {
     char name;
     operator std::set<Attr> () const { return std::set<Attr>{*this}; } // An attribute is a set of itself
