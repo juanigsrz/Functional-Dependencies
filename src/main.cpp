@@ -1,5 +1,5 @@
 #include <iostream>
-#include "funcdependency.cpp"
+#include "funcdependency.h"
 
 int main() {
     /** Set 1 **/
