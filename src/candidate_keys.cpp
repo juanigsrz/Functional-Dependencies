@@ -10,9 +10,9 @@ SetAttrs candidate_keys(const Attrs& R, const AttrDependencies& F){
     for(auto &X : partsR){
         if(attr_closure(X, F) != R) continue; // We require X to be a superkey
 
-        SetAttrs partsY = generateSubsets(X.begin(), X.end());
+        SetAttrs partsX = generateSubsets(X.begin(), X.end());
         bool isCandidate = true;
-        for(auto &Y : partsY){
+        for(auto &Y : partsX){
             if(Y.size() == X.size()) continue; // We require Y to be a proper subset
 
             if(attr_closure(Y, F) == R){
