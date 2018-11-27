@@ -1,0 +1,9 @@
+R := ABCDEFGH
+A := AC
+F := 6
+A -> BC
+C -> D
+D -> G
+E -> A
+E -> H
+H -> E

@@ -1,0 +1,8 @@
+R := ABCDEFGHIJ
+A := BD
+F := 5
+A -> I
+AB -> C
+AD -> GH
+BD -> EF
+H -> J

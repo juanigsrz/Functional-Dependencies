@@ -1,0 +1,5 @@
+R := ABCDEF
+A := empty
+F := 2
+AB -> C
+BD -> EF

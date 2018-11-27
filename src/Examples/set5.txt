@@ -1,0 +1,10 @@
+R := ABCDEFG
+A := FG
+F := 7
+A -> F
+A -> G
+B -> E
+C -> D
+D -> B
+E -> A
+FG -> C

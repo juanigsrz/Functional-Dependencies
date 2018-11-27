@@ -1,0 +1,6 @@
+R := ABCD
+A := empty
+F := 3
+A -> B
+B -> AD
+BC -> A
