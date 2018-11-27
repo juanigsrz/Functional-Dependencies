@@ -6,15 +6,5 @@ How to use:
 2. Use: fd file [-countFD]
 
 • -countFD is optional, prints the cardinality of F+
-• Format of the input file:
-    Each attribute will be represented as a character
-    ○ R := S, where S is the set of all attributes
-    ○ A := S, where S is the set from which we want to calculate A+
-    ○ F := N
-        S1 -> S2
-        ...
-        Si -> Sj
 
-        where N and integer and each one of the following N lines represent a functional dependency Si -> Sj
-
-    Refer to the examples if needed
+Refer to the examples to see how to format an input file
