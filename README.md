@@ -15,6 +15,6 @@ How to use:
         ...
         Si -> Sj
 
-        where N and integer and each one of the following N lines represent each one a functional dependency
+        where N and integer and each one of the following N lines represent a functional dependency Si -> Sj
 
     Refer to the examples if needed
