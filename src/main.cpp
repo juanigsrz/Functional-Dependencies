@@ -88,12 +88,8 @@ int main(int argc, char* argv[]) {
     /** Candidate keys **/
     SetAttrs cand_keys = candidate_keys(R, F);
     std::cout << "Candidate keys: \n";
-    for(auto &attrs : cand_keys){
-        for(auto &c : attrs) std::cout << c;
-        std::cout << '\n';
-    }
+    for(auto &attrs : cand_keys) std::cout << attrs << std::endl;
 
-    std::cout << std::endl;
 
     return 0;
 }
