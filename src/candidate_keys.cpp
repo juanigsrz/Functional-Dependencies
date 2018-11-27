@@ -6,9 +6,9 @@ SetAttrs candidate_keys(const Attrs& R, const AttrDependencies& F){
     // X+ includes all the attributes in R and there is
     // no proper subset Y of X such that Y+ includes all the attributes in R
 
-    SetAttrs res = {}, partsX = generateSubsets(R.begin(), R.end());
-    for(auto &X : partsX){
-        if(attr_closure(X, F) != R) continue; // We require X to be a candidate key
+    SetAttrs res = {}, partsR = generateSubsets(R.begin(), R.end());
+    for(auto &X : partsR){
+        if(attr_closure(X, F) != R) continue; // We require X to be a superkey
 
         SetAttrs partsY = generateSubsets(X.begin(), X.end());
         bool isCandidate = true;
