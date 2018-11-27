@@ -30,7 +30,6 @@ Attrs operator + (const Attrs& a, const Attrs& b);
 
 /** Utilities **/
 int countDependencies(const AttrDependencies& F);
-void auxGenerateSubsets(Attrs::iterator it, Attrs::iterator last, SetAttrs& res, Attrs& temp);
 SetAttrs generateSubsets(Attrs::iterator it, Attrs::iterator last);
 
 /** Functions **/
