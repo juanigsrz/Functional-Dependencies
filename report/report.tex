@@ -168,10 +168,10 @@ Sea $F$ un conjunto de dependencias funcionales definido sobre $R$. El cierre de
             aplicar las reglas de aumentatividad a f;
             añadir las nuevas DF obtenidas a resultado;
             
-    for each DF f1 in resultado do
-        for each DF f2 in resultado do
-            if f1 y f2 pueden combinarse por transitividad then
-                añadir la nueva DF a resultado;
+        for each DF f1 in resultado do
+            for each DF f2 in resultado do
+                if f1 y f2 pueden combinarse por transitividad then
+                    añadir la nueva DF a resultado;
                 
     return resultado;
 \end{Verbatim}
