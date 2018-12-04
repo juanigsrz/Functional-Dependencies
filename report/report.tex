@@ -1,0 +1,318 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{etoolbox}
+\usepackage{titlesec}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{fancyvrb}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[spanish]{babel}
+\usepackage[most]{tcolorbox}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nottoc,numbib]{tocbibind}
+\hyphenchar\font=-1
+
+\hypersetup{
+	allcolors=black
+}
+
+\renewcommand{\contentsname}{Índice}
+\renewcommand\refname{Referencias}
+
+% set the default code style
+\lstset{
+    language = C,
+    frame=tblr, % draw a frame at the top and bottom of the code block
+    rulecolor=\color{black},
+    tabsize=4, % tab space width
+    breakatwhitespace=true,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=false,
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,
+    basicstyle=\small\ttfamily\bfseries,
+    commentstyle=\color{red}, % comment color
+    keywordstyle=\color{blue}, % keyword color
+    stringstyle=\color{orange} % string color
+}
+\title{Trabajo Práctico 4 - TBD}
+\date{16-04-2018}
+\author{
+	Román Castellarín\\
+	\and
+	Gianfranco Paoloni\\
+	\and
+	Juan Ignacio Suarez
+}
+
+
+\newtcblisting{commandshell}{colback=black,colupper=white,colframe=black,
+listing only,listing options={language=sh,  keywordstyle=\color{white}, basicstyle=\small\ttfamily\bfseries, breaklines=true, keepspaces=true, breakatwhitespace=false,  captionpos=b, showstringspaces=false, showtabs=false }}
+
+\begin{document}
+
+\begin{titlepage}
+	\centering
+	\includegraphics[width=0.4\textwidth]{unrlogo}\par\vspace{1cm}
+	{\scshape\LARGE Teoría de Bases de Datos \par}
+	{\scshape\Large Trabajo práctico 4\par}
+	\vspace{1.5cm}
+	{\huge\bfseries Normalización \par}
+	\vspace{2cm}
+	{\Large\itshape  Román Castellarín \\
+	                 Gianfranco Paoloni \\
+	                 Juan Ignacio Suarez \par}
+	\vfill
+
+% Bottom of the page
+	{\large \today \par}
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+\section{Introducción}
+En este documento se describe la definición e implementación de varios algoritmos sobre conjuntos de atributos y de dependencias funcionales. Para realizar el testeo de estos algoritmos se proponen 5 sets de prueba:
+
+\begin{Verbatim}[frame=single]
+    Set 1
+    R = {A, B, C, D}
+    F = {A->B, CB->A, B->AD}
+\end{Verbatim}
+
+\begin{Verbatim}[frame=single]
+    Set 2
+    R = {A, B, C, D, E, F}
+    F = {AB->C, BD->EF}
+\end{Verbatim}
+
+\begin{Verbatim}[frame=single]
+    Set 3
+    R = {A, B, C, D, E, F, G, H, I, J}
+    F = {AB->C, BD->EF, AD->GH, A->I, H->J}
+    A = {B, D}
+\end{Verbatim}
+
+\begin{Verbatim}[frame=single]
+    Set 4
+    R = {A, B, C, D, E, F, G, H}
+    F = {A->BC, C->D, D->G, H->E, E->A, E->H}
+    A = {A, C}
+\end{Verbatim}
+
+\begin{Verbatim}[frame=single]
+    Set 5
+    R = {A, B, C, D, E, F, G}
+    F = {A->G, A->F, B->E, C->D, E->A, D->B, GF->C}
+    A = {F, G}
+\end{Verbatim}
+
+Cada uno de estos sets se proveen bajo la sintaxis particular de nuestro programa en el en directorio \verb|Examples|, en los archivos \verb|set1.txt|, \verb|set2.txt|, \verb|set3.txt|, \verb|set4.txt| y \verb|set5.txt|.
+
+\subsection{Estructura del programa}
+El programa ha sido implementado en \verb|C++11|, incluye seis archivos principales: \verb|main.cpp|, \verb|funcdependency.h|, \verb|funcdependency.cpp|, \verb|set_closure.cpp|, \verb|attr_closure.cpp| y \verb|candidate_keys.cpp|.
+
+\begin{itemize}
+    \item \verb|main.cpp|: mini-parser de archivos de entrada y llamadas correspondientes
+    a las funciones requeridas en el trabajo práctico.
+    \item \verb|funcdependency.h|: definiciones de conjuntos de atributos y dependencias, así también como operadores y funciones requeridas para la implementación general.
+    \item \verb|funcdependency.cpp|: implementación de las definiciones generales previamente mencionadas.
+    \item \verb|set_closure.cpp|: implementación para encontrar la clausura de un conjunto de dependencias funcionales.
+    \item \verb|attr_closure.cpp|: similar al anterior aplicado a la clausura de atributos.
+    \item \verb|candidate_keys.cpp|: implementación para determinar todas las posibles claves candidatas de un conjunto de atributos y las dependencias funcionales correspondientes al conjunto.
+\end{itemize}
+
+\subsection{Compilación}
+Para compilar el programa basta con compilar con \texttt{g++} (versión 2011 o más moderna) todos los archivos mencionados en la sección anterior. Dado que en la implementación probamos casos sobre muchos subconjuntos es ideal compilar con optimización de tipo 3 (-O3). Además, crearemos un ejecutable con el nombre \verb|fd| para poder tener una consistencia con los ejemplos siguientes. Todo esto se puede hacer en una línea con el comando
+
+\begin{commandshell}
+> g++ -std=c++11 -O3 *.cpp -o fd
+\end{commandshell}
+
+Si tuvimos éxito debemos tener un archivo ejecutable llamado fd en el mismo directorio.
+
+\subsection{Ejecución}
+Suponiendo que el ejecutable compilado se llama \verb|fd|, la ejecución es tan simple como correr
+
+\begin{commandshell}
+> ./fd archivo_de_entrada
+\end{commandshell}
+\small{será fd.exe en vez de ./fd si estamos en Windows} \\
+
+Dado que calcular el conjunto de cierre de dependencias funcionales resulta una operación muy costosa como veremos luego, hemos incluído un comando opcional \verb|-countFD| si se desea contar la cardinalidad de dicho conjunto. La ejecución con esta opción sería
+
+\begin{commandshell}
+> ./fd archivo_de_entrada -countFD
+\end{commandshell}
+
+\newpage
+\section{Cierre de conjuntos de dependencias funcionales $F^{+}$}
+\subsection{Algoritmo}
+Sea $F$ un conjunto de dependencias funcionales definido sobre $R$. El cierre de $F$, denotado por $F^{+}$, es el conjunto de todas las dependencias funcionales que $F$ implica lógicamente. El siguiente algoritmo escrito en pseudocódigo basado en los axiomas de Armstrong nos permite calcular $F^{+}$:
+
+\begin{Verbatim}[frame=single]
+    resultado := F;
+    
+    for each alfa in P(R) do
+        aplicar las reglas de reflexividad a alfa;
+        añadir las nuevas DF obtenidas a resultado;
+        
+    while (hay cambios en resultado) do
+        for each DF f in resultado do
+            aplicar las reglas de aumentatividad a f;
+            añadir las nuevas DF obtenidas a resultado;
+            
+    for each DF f1 in resultado do
+        for each DF f2 in resultado do
+            if f1 y f2 pueden combinarse por transitividad then
+                añadir la nueva DF a resultado;
+                
+    return resultado;
+\end{Verbatim}
+
+\subsection{Implementación}
+La implementación de este algoritmo se puede encontrar en el archivo \verb|set_closure.cpp|
+
+\newpage
+\section{Cierre de conjuntos de atributos $\alpha^{+}$}
+\subsection{Algoritmo}
+Sea $\alpha$ un conjunto de atributos. Al conjunto de todos los atributos determinados funcionalmente por $\alpha$ bajo un conjunto $F$ de dependencias funcionales se lo denomina cierre de $\alpha$ bajo $F$ y se denota mediante $\alpha^{+}$. A continuación se muestra un algoritmo escrito en pseudocódigo para calcular $\alpha^{+}$ a partir de $F$ y $\alpha$:
+
+\begin{Verbatim}[frame=single]
+    resultado := alfa;
+    
+    while (hay cambios en resultado) do
+        for each dependencia funcional b->c in F do
+            if b está contenido en resultado then
+                resultado := resultado UNION c;
+    
+    return resultado;
+\end{Verbatim}
+
+\subsection{Implementación}
+La implementación de este algoritmo se puede encontrar en el archivo \verb|attr_closure.cpp|
+
+
+\newpage
+\section{Conjunto de claves candidatas $S_{K}$}
+\subsection{Algoritmo}
+Dada una relación $R$ y un conjunto de dependencias funcionales $F$ queremos encontrar el conjunto de todas sus claves candidatas $S_{K}$. Recordemos la definición de clave candidata:
+
+Una clave candidata $K$ de una relación $R$ es una superclave minimal para dicha relación, es decir, es un conjunto de atributos $K$ que cumple:
+\begin{enumerate}
+    \item $K$ es superclave, es decir que $K^{+} = R$
+    \item $K$ es minimal, es decir que  $\nexists Y \subset K\ |\ Y^{+} = R$. Notar que la inclusión es estricta, pues $Y$ es un subconjunto propio de $K$.
+\end{enumerate}
+
+Dicho esto podemos entonces escribir un algoritmo (en pseudocódigo) para calcular $S_{K}$ a partir de $R$ y $F$:
+
+\begin{Verbatim}[frame=single]
+    resultado := vacío;
+    
+    for each X in P(R) do
+        if X+ == R then
+            esCandidato := true;
+            
+            for each Y in P(X) - X do
+                if Y+ == R then
+                    esCandidato := false;
+            
+            if esCandidato == true then
+                añadir X a resultado
+                
+    return resultado;
+\end{Verbatim}
+
+\subsection{Implementación}
+La implementación de este algoritmo se puede encontrar en el archivo \verb|candidate_keys.cpp|
+
+
+\newpage
+\section{Salidas del programa en los sets de prueba}
+Para verificar la correcta ejecución de los algoritmos, a continuación se presenta la ejecución del programa en cada uno de los sets de prueba descritos en la introducción.
+
+\subsection{Set 1}
+Corriendo el programa sobre el set 1 se obtiene
+
+\begin{commandshell}
+> ./fd Examples/set1.txt -countFD
+A+ closure: empty
+F+ size: 137
+Candidate keys:
+AC
+BC
+\end{commandshell}
+
+Por lo que la cardinalidad del conjunto $F^{+}$ es 137, y el conjunto de claves candidatas $S_{K}$ resulta $\{AC,BC\}$.
+
+
+\subsection{Set 2}
+Corriendo el programa sobre el set 2 se obtiene
+
+\begin{commandshell}
+> ./fd Examples/set2.txt -countFD
+A+ closure: empty
+F+ size: 1081
+Candidate keys:
+ABD
+\end{commandshell}
+
+Por lo que la cardinalidad del conjunto $F^{+}$ es 1081, y el conjunto de claves candidatas $S_{K}$ resulta $\{ABD\}$.
+
+
+\subsection{Set 3}
+Corriendo el programa sobre el set 3 se obtiene
+
+\begin{commandshell}
+> ./fd Examples/set3.txt
+A+ closure: BDEF
+Candidate keys:
+ABD
+\end{commandshell}
+
+Por lo que la clausura de atributos del conjunto $A$ resulta $A^{+} = \{BDEF\}$, y el conjunto de claves candidatas $S_{K}$ resulta $\{ABD\}$
+
+
+\subsection{Set 4}
+Corriendo el programa sobre el set 4 se obtiene
+
+\begin{commandshell}
+> ./fd Examples/set4.txt
+A+ closure: ABCDG
+Candidate keys:
+EF
+FH
+\end{commandshell}
+
+Por lo que la clausura de atributos del conjunto $A$ resulta $A^{+} = \{ABCDG\}$, y el conjunto de claves candidatas $S_{K}$ resulta $\{EF,FH\}$
+
+
+\subsection{Set 5}
+Corriendo el programa sobre el set 5 se obtiene
+
+\begin{commandshell}
+> ./fd Examples/set5.txt
+A+ closure: ABCDEFG
+Candidate keys:
+A
+B
+C
+D
+E
+FG
+\end{commandshell}
+
+Por lo que la clausura de atributos del conjunto $A$ resulta $A^{+} = \{ABCDEFG\}$, y el conjunto de claves candidatas $S_{K}$ resulta $\{A,B,C,D,E,FG\}$
+
+
+\nocite{*}
+\bibliography{referencias}
+\bibliographystyle{plain}
+
+\end{document}
