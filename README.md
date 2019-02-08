@@ -1,5 +1,5 @@
 # Functional-Dependencies
-C++ implementation of functional dependencies
+C++ implementation of functional dependencies operations
 
 How to use:
 1. Compile: g++ -std=c++11 -O3 *.cpp -o fd
